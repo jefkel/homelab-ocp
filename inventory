@@ -14,9 +14,12 @@ ansible_become=true
 
 openshift_deployment_type=origin
 openshift_master_default_subdomain=app.cavenet.ca
-# used to bypass bad dns.
+# used to ensure external DNS doesn't override internal name
 MasterPublicURL=https://mm01.cavenet.ca:8443
-openshift_dns_ip=10.1.1.10
+
+# The following seems to mess up Ansible Service Broker, so ensure DNS is properly set to only internal address
+# BEFORE running deploy
+#openshift_dns_ip=10.1.1.10
 
 os_firewall_use_firewalld=true
 
@@ -30,20 +33,18 @@ openshift_check_min_host_disk_gb=15
 
 #openshift_master_audit_config={"enabled": true, "auditFilePath": "/var/log/audit-ocp.log", "maximumFileRetentionDays": 7, "maximumFileSizeMegabytes": 50, "maximumRetainedFiles": 5, "logFormat": "legacy", "policyFile": "/etc/origin/master/audit-policy.yaml"}
 ## Referencing pre-dropped audit policy as nothing will copy the audit policy file during deploy-cluster
-openshift_master_audit_config={"enabled": true, "auditFilePath": "/var/log/audit-ocp.log", "maximumFileRetentionDays": 7, "maximumFileSizeMegabytes": 50, "maximumRetainedFiles": 5, "logFormat": "legacy", "policyFile": "/home/jkelly/exclusive-audit-policy.yaml"}
+openshift_master_audit_config={"enabled": true, "auditFilePath": "/var/log/audit-ocp.log", "maximumFileRetentionDays": 7, "maximumFileSizeMegabytes": 50, "maximumRetainedFiles": 5, "logFormat": "legacy", "policyFile": "/usr/local/etc/test-audit-policy.yaml"}
 
-# 
-#openshift_hosted_etcd_storage_kind=nfs
-#openshift_hosted_etcd_storage_nfs_options="*(rw,root_squash,sync,no_wdelay)"
-#openshift_hosted_etcd_storage_nfs_directory=/srv/nfs/osev3-etcd
-#openshift_hosted_etcd_storage_volume_name=etcd-vol2
-#openshift_hosted_etcd_storage_access_modes=["ReadWriteOnce"]
-#openshift_hosted_etcd_storage_volume_size=1G
-#openshift_hosted_etcd_storage_labels={'storage': 'etcd'}
+# PersistentLocalStorage
+# If Persistent Local Storage is wanted, this boolean can be defined to True.
+# This will create all necessary configuration to use persistent storage on nodes.
+#openshift_persistentlocalstorage_enabled=False
+openshift_persistentlocalstorage_enabled=True
+#openshift_persistentlocalstorage_classes=[]
+#openshift_persistentlocalstorage_path=/mnt/local-storage
+#openshift_persistentlocalstorage_provisionner_image=quay.io/external_storage/local-volume-provisioner:v1.0.1
 
-#ansible_service_broker_local_registry_whitelist=['.*-apb$']
-template_service_broker_selector="{'type': 'infra'}"
-#template_service_broker_selector="{{ openshift_hosted_infra_selector | default('type=infra') | map_from_pairs }}"
+ansible_service_broker_local_registry_whitelist=['.*-apb$']
 
 # host group for masters
 [masters]

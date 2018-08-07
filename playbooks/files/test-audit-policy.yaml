@@ -1,0 +1,98 @@
+apiVersion: audit.k8s.io/v1beta1 # This is required.
+kind: Policy
+rules:
+# Do not log authenticated requests to certain non-resource URL paths.
+# Ref: https://docs.openshift.com/container-platform/3.9/install_config/master_node_configuration.html#master-node-config-advanced-audit
+  - level: None
+    userGroups: ["system:authenticated"] 
+    nonResourceURLs: 
+    - "/api*" # Wildcard matching.
+    - "/version"
+
+# Don't log requests to a configmap called "controller-leader"
+# Ref: https://github.com/kubernetes/kubernetes/blob/master/cluster/gce/gci/configure-helper.sh#L710
+  - level: None
+    resources:
+    - group: ""
+      resources: ["configmaps"]
+      resourceNames: ["controller-leader"]
+
+# Kube service account filter (may need to open this back up if we're not seeing enough re: cronjobs, etc)
+  - level: None
+    users:
+    - system:serviceaccount:kube-service-catalog:service-catalog-controller
+    - system:serviceaccount:kube-system:pod-garbage-collector
+    - system:serviceaccount:kube-system:cronjob-controller
+    verbs: ["get", "watch", "list", "update", "patch"]
+
+# kube-system namespace updates are noisy
+  - level: None
+    userGroups: ["system:nodes", "system:masters"]
+    verbs: ["get", "watch", "list", "patch", "update"]
+    namespaces: ["kube-system"]
+
+# Attempt to filter get/watch/list for all (until we want to track read requests)
+  - level: None
+    verbs: ["get", "watch", "list"]
+
+# Generic Get/List/Watch filter for Authenticated access
+  - level: None
+    userGroups: ["system:authenticated"] 
+    verbs: ["get", "watch", "list"]
+    resources:
+    - group: "" # core
+      resources: 
+      - buildconfigs
+      - configmaps
+      - endpoints
+      - nodes
+      - nodes/status
+      - pods
+      - resourcequotas
+      - secrets
+      - serviceaccounts
+    - group: "servicecatalog.k8s.io"
+    - group: "metrics.k8s.io"
+
+  # More explicit filter for specific update/patch
+  - level: None
+    userGroups: ["system:nodes", "system:masters"]
+    verbs: ["update", "patch"]
+    resources:
+    - group: "" # core
+      resources: ["nodes/status", "apiservices/status"]
+    - group: "apiregistration.k8s.io"
+      resources: ["apiservices/status"]
+
+# subjectaccessreviews are quite noisy, exclude if from already authenticated.
+  - level: None
+    userGroups: ["system:authenticated"]
+    resouce: 
+    - group: "authorization.k8s.io"
+      resources: ["subjectaccessreviews", "selfsubjectrulesreviews"]
+
+# Show RequestResponse for system:masters to attempt to catch login events
+  - level: RequestResponse
+    userGroups: ["system:masters"]
+    resouce: 
+    - group: "authorization.k8s.io"
+      resources: ["subjectaccessreviews", "selfsubjectrulesreviews"]
+    omitStages:
+     - "RequestReceived"
+
+# Don't log events requests.
+  - level: None
+    resources:
+    - group: "" # core
+      resources: ["events"]
+
+# deletecollection calls can be large, don't log responses for expected namespace deletions
+# Ref: https://github.com/kubernetes/kubernetes/blob/master/cluster/gce/gci/configure-helper.sh#L710
+  - level: Request
+    users: ["system:serviceaccount:kube-system:namespace-controller"]
+    verbs: ["deletecollection"]
+    omitStages:
+      - "RequestReceived"
+
+  # A catch-all rule to get all as Metadata (will need specific rules for what we want more detail for.
+  - level: Metadata

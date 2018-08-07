@@ -21,7 +21,7 @@ Each VM built with Minimal CentOS image
  - root and user (admin) accounts provisioned during install
  - mm01, mnode01, mnode02, mnode03 in the cavenet.ca domain for hostnames
 
-Run homelab/playbooks/deployOS.yml playbook to do initial server setup
+Run homelab/playbooks/deployOS.yml playbook to do initial server setup and other prep steps
  - notes: 
    - no sudo without password
    - no key'd login (yet)
@@ -38,6 +38,7 @@ then
 ansible-playbook ../openshift-ansible/playbooks/deploy_cluster.yml
 
 - openshift_master_default_subdomain=app.cavenet.ca
+- MasterPublicURL=https://mm01.cavenet.ca:8443
 - os_firewall_use_firewalld=true
 
 Very important to set the following to override the default minimum requirements!
@@ -47,7 +48,7 @@ Very important to set the following to override the default minimum requirements
 See the actual hosts.OS file for a full picture of the additional options, but the above were the main requirements.
 
 ### TroubleShooting Fun
-Adding extra infrastructure node may seem like a fun idea, but it adds to the network complexity when configuring gateways, DNS, etc.
+Check your DHCP settings for your home network (external DNS will break your install and be more annoying to troubleshoot than a cracked wire in a car stereo wiring harness.)
 
 Firewalls, port-forwarding, provider port blocking, and other networking fun when hosting presentation material from home.
 

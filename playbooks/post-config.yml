@@ -9,13 +9,7 @@
 
   - name: Bastion grab kube config
     become: no
-    local_action: 
-      module: synchronize
-      src: "{{ item }}"
-      dest: /tmp/
-      mode: pull
-    with_items:
-      - "{{ inventory_hostname }}:~/.kube"
+    local_action: shell scp {{ inventory_hostname }}:~/.kube/config ~/.kube/config
 
   - name: Add Cluster Admin
     shell: /usr/bin/oc adm policy add-cluster-role-to-user cluster-admin jkelly

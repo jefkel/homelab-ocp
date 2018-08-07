@@ -26,10 +26,10 @@
     when: keygen.rc == 1
     with_items: '{{ keyscan.stdout_lines|default([]) }}'
 
-  - name: Patch OS
-    yum:
-      name: '*'
-      state: latest
+#  - name: Patch OS
+#    yum:
+#      name: '*'
+#      state: latest
 
   - name: Add extra packages
     yum:
@@ -101,14 +101,22 @@
       mode: '0400'
       validate: visudo -cf %s
 
-  - name: Reboot Server
-    shell: shutdown -r +1
+  - name: copy audit filter to host
+    copy:
+      src: test-audit-policy.yaml
+      dest: /usr/local/etc/test-audit-policy.yaml
+      owner: root
+      group: root
+      mode: '0644'
 
-  - name: Hold for Reboot
-    wait_for_connection:
-      timeout: 900
-      delay: 120
-      sleep: 5
+#  - name: Reboot Server
+#    shell: shutdown -r +1
+
+#  - name: Hold for Reboot
+#    wait_for_connection:
+#      timeout: 900
+#      delay: 120
+#      sleep: 5
 
   - debug: 
       msg: "back after Reboot."

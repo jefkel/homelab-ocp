@@ -1,0 +1,18 @@
+---
+#- hosts: mm01.cavenet.ca
+- hosts: masters
+
+  tasks:
+  - name: create tmp provision file
+    local_action:
+      module: template
+      src: create-osasb-etc-pv.j2
+      dest: /tmp/osasb-etc-pv.pv
+      force: yes
+    register: _pvtmpl
+
+  - name: provision pv from file
+    become: no
+    local_action: shell oc create -f /tmp/osasb-etc-pv.pv
+    when: not _pvtmpl.failed
+
