@@ -1,0 +1,21 @@
+---
+#- hosts: mm01.cavenet.ca
+- hosts: masters
+  become: yes
+
+  tasks:
+  - name: Bastion install oc binary
+    debug: { msg: "copy oc binary from master to bastion host path" }
+
+  - name: Bastion grab kube config
+    become: no
+    local_action: 
+      module: synchronize
+      src: "{{ item }}"
+      dest: /tmp/
+      mode: pull
+    with_items:
+      - "{{ inventory_hostname }}:~/.kube"
+
+  - name: Add Cluster Admin
+    shell: /usr/bin/oc adm policy add-cluster-role-to-user cluster-admin jkelly

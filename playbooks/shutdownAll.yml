@@ -1,0 +1,17 @@
+---
+#- hosts: mm01.cavenet.ca,mnode01.cavenet.ca,mnode02.cavenet.ca,mnode03.cavenet.ca
+- hosts: nodes
+  become: yes
+
+  tasks:
+  - name: Shutdown Server
+    shell: shutdown +1
+
+#  - name: Hold for Reboot
+#    wait_for_connection:
+#      timeout: 900
+#      delay: 120
+#      sleep: 5
+
+#  - debug: 
+#      msg: "back after Reboot."
