@@ -5,6 +5,9 @@ nodes
 etcd
 #nfs
 
+[bastion]
+bastion.cavenet.ca
+
 # Set variables common for all OSEv3 hosts
 [OSEv3:vars]
 # SSH user, this user should allow ssh based auth without requiring a password
