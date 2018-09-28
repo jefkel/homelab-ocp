@@ -20,33 +20,25 @@ openshift_master_default_subdomain=app.cavenet.ca
 # used to ensure external DNS doesn't override internal name
 MasterPublicURL=https://mm01.cavenet.ca:8443
 
-# The following seems to mess up Ansible Service Broker, so ensure DNS is properly set to only internal address
-# BEFORE running deploy
-#openshift_dns_ip=10.1.1.10
-
+openshift_rolling_restart_mode=system
 os_firewall_use_firewalld=true
 
 # uncomment the following to enable htpasswd authentication; defaults to DenyAllPasswordIdentityProvider
-openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider', 'filename': '/etc/origin/master/htpasswd'}]
+openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider'}]
 openshift_master_htpasswd_file=/home/jkelly/htpasswd
 
 openshift_docker_options="--log-driver json-file --log-opt max-size=1M --log-opt max-file=3"
 openshift_check_min_host_memory_gb=1.5
 openshift_check_min_host_disk_gb=15
 
-#openshift_master_audit_config={"enabled": true, "auditFilePath": "/var/log/audit-ocp.log", "maximumFileRetentionDays": 7, "maximumFileSizeMegabytes": 50, "maximumRetainedFiles": 5, "logFormat": "legacy", "policyFile": "/etc/origin/master/audit-policy.yaml"}
-## Referencing pre-dropped audit policy as nothing will copy the audit policy file during deploy-cluster
-openshift_master_audit_config={"enabled": true, "auditFilePath": "/var/log/audit-ocp.log", "maximumFileRetentionDays": 7, "maximumFileSizeMegabytes": 50, "maximumRetainedFiles": 5, "logFormat": "legacy", "policyFile": "/usr/local/etc/test-audit-policy.yaml"}
-
 # PersistentLocalStorage
 # If Persistent Local Storage is wanted, this boolean can be defined to True.
 # This will create all necessary configuration to use persistent storage on nodes.
 #openshift_persistentlocalstorage_enabled=False
 openshift_persistentlocalstorage_enabled=True
-#openshift_persistentlocalstorage_classes=[]
-#openshift_persistentlocalstorage_path=/mnt/local-storage
-#openshift_persistentlocalstorage_provisionner_image=quay.io/external_storage/local-volume-provisioner:v1.0.1
 
+# Override image as per https://github.com/openshift/openshift-ansible/issues/9960
+ansible_service_broker_image="docker.io/ansibleplaybookbundle/origin-ansible-service-broker:ansible-service-broker-1.2.17-1"
 ansible_service_broker_local_registry_whitelist=['.*-apb$']
 
 # host group for masters
@@ -59,10 +51,10 @@ mm01.cavenet.ca
 
 # host group for nodes, includes region info
 [nodes]
-mm01.cavenet.ca
-mnode01.cavenet.ca openshift_node_labels="{'region': 'primary', 'zone': 'default'}"
-mnode02.cavenet.ca openshift_node_labels="{'region': 'primary', 'zone': 'default'}"
-mnode03.cavenet.ca openshift_node_labels="{'region': 'infra', 'zone': 'default'}"
+mm01.cavenet.ca openshift_node_group_name='node-config-master'
+mnode01.cavenet.ca openshift_node_group_name='node-config-compute'
+mnode02.cavenet.ca openshift_node_group_name='node-config-compute'
+mnode03.cavenet.ca openshift_node_group_name='node-config-infra'
 
 #[nfs]
 #central.cavenet.ca
