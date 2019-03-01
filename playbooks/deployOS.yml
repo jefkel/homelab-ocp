@@ -1,32 +1,16 @@
 ---
+#- hosts: bastion
 - hosts: all
-#- hosts: nodes
   become: yes
 
+  handlers:
+  - name: Restart chronyd
+    service:
+      name: chronyd
+      state: restarted
+      enabled: yes
+
   tasks:
-  - name: "check if known_hosts contains server's fingerprint"
-    local_action: command ssh-keygen -F {{ inventory_hostname }}
-    register: keygen
-    failed_when: keygen.stderr != ''
-    changed_when: False
-    ignore_errors: true
-
-  - name: fetch remote ssh key
-    local_action: command ssh-keyscan -T5 {{ inventory_hostname }}
-    register: keyscan
-    failed_when: keyscan.rc != 0 or keyscan.stdout == ''
-    changed_when: False
-    when: keygen.rc == 1
-
-  - name: add ssh-key to local known_hosts
-    local_action: 
-      module: lineinfile
-      name: ~/.ssh/known_hosts
-      create: yes
-      line: "{{ item }}"
-    when: keygen.rc == 1
-    with_items: '{{ keyscan.stdout_lines|default([]) }}'
-
   - name: Patch OS
     yum:
       name: '*'
@@ -66,18 +50,14 @@
       line: 'server central.cavenet.ca iburst'
       state: present
     when: time_server.rc == 1
+    notify: Restart chronyd
 
   - name: delete centos time sources
     lineinfile:
       path: /etc/chrony.conf
       regexp: 'centos\.pool\.ntp\.org'
       state: absent
-
-  - name: Restart chronyd
-    service:
-      name: chronyd
-      state: restarted
-      enabled: yes
+    notify: Restart chronyd
 
   - name: Add public key to provisioned accounts
     authorized_key:
@@ -110,6 +90,7 @@
       owner: root
       group: root
       mode: '0644'
+    when: "'masters' in group_names"
 
   - name: Reboot Server
     shell: shutdown -r +1
@@ -122,5 +103,17 @@
       sleep: 5
     when: os_patch.changed
 
-  - debug: 
-      msg: "back after Reboot."
+  - name: Install ansible with pip
+    pip:
+      name: ansible
+      version: 2.6.14
+    when: "'bastion' in group_names"
+
+  - name: Pull openshift-ansible repo to bastion
+    become_user: "{{ ansible_ssh_user }}"
+    become: yes
+    git:
+      repo: "https://github.com/openshift/openshift-ansible"
+      dest: ~/openshift-ansible/
+      version: "release-{{ openshift_release }}"
+    when: "'bastion' in group_names"

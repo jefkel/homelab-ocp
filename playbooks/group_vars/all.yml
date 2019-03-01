@@ -1,0 +1,5 @@
+---
+ansible_ssh_user: jkelly
+ansible_become: true
+
+openshift_release: 3.11
