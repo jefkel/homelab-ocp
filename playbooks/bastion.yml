@@ -2,6 +2,13 @@
 - hosts: bastion
   become: yes
 
+  handlers:
+  - name: Restart chronyd
+    service:
+      name: chronyd
+      state: restarted
+      enabled: yes
+
   tasks:
 #  - name: "check if known_hosts contains server's fingerprint"
 #    local_action: command ssh-keygen -F {{ inventory_hostname }}
@@ -29,6 +36,7 @@
     yum:
       name: '*'
       state: latest
+    register: os_patch
 
   - name: Add extra packages
     yum:
@@ -63,18 +71,14 @@
       line: 'server central.cavenet.ca iburst'
       state: present
     when: time_server.rc == 1
+    notify: Restart chronyd
 
   - name: delete centos time sources
     lineinfile:
       path: /etc/chrony.conf
       regexp: 'centos\.pool\.ntp\.org'
       state: absent
-
-  - name: Restart chronyd
-    service:
-      name: chronyd
-      state: restarted
-      enabled: yes
+    notify: Restart chronyd
 
   - name: Add public key to provisioned accounts
     authorized_key:
@@ -110,12 +114,16 @@
 
   - name: Reboot Server
     shell: shutdown -r +1
+    when: os_patch.changed
 
   - name: Hold for Reboot
     wait_for_connection:
       timeout: 900
       delay: 120
       sleep: 5
+    when: os_patch.changed
 
-  - debug: 
-      msg: "back after Reboot."
+  - name: Install ansible with pip
+    pip:
+      name: ansible
+      version: 2.6.14

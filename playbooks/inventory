@@ -1,0 +1,26 @@
+# Create an OSEv3 group that contains the masters, nodes, and etcd groups
+[OSEv3:children]
+masters
+nodes
+etcd
+
+[bastion]
+bastion.cavenet.ca
+
+# host group for masters
+[masters]
+mm01.cavenet.ca
+
+# host group for etcd
+[etcd]
+mm01.cavenet.ca
+
+# host group for nodes, includes region info
+[nodes]
+mm01.cavenet.ca openshift_node_group_name='node-config-master'
+mnode01.cavenet.ca openshift_node_group_name='node-config-compute'
+mnode02.cavenet.ca openshift_node_group_name='node-config-compute'
+mnode03.cavenet.ca openshift_node_group_name='node-config-infra'
+
+#[nfs]
+#central.cavenet.ca

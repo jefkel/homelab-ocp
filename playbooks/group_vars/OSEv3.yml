@@ -1,0 +1,28 @@
+---
+ansible_ssh_user=jkelly
+ansible_become=true
+
+openshift_deployment_type=origin
+openshift_master_default_subdomain=app.cavenet.ca
+# used to ensure external DNS doesn't override internal name
+MasterPublicURL=https://mm01.cavenet.ca:8443
+
+openshift_rolling_restart_mode=system
+os_firewall_use_firewalld=true
+
+# Test this from Steven!
+openshift_master_identity_providers=[{"name": "github", "challenge": false, "login": true, "mappingMethod": "claim", "provider": {"apiVersion": "v1", "clientID": "0594c88fa08e19e661f9", "clientSecret": "456761429ddcb8980176ecddf616443f4100393a", "kind": "GitHubIdentityProvider", "organizations": ["cavenet"]}}]
+
+openshift_docker_options="--log-driver json-file --log-opt max-size=1M --log-opt max-file=3"
+openshift_check_min_host_memory_gb=1.5
+openshift_check_min_host_disk_gb=15
+
+# PersistentLocalStorage
+# If Persistent Local Storage is wanted, this boolean can be defined to True.
+# This will create all necessary configuration to use persistent storage on nodes.
+#openshift_persistentlocalstorage_enabled=False
+openshift_persistentlocalstorage_enabled=True
+
+# Override image as per https://github.com/openshift/openshift-ansible/issues/9960
+#ansible_service_broker_image="docker.io/ansibleplaybookbundle/origin-ansible-service-broker:ansible-service-broker-1.2.17-1"
+ansible_service_broker_local_registry_whitelist=['.*-apb$']

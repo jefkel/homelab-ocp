@@ -1,5 +1,5 @@
 ---
-- hosts: all
+- hosts: mm01.cavenet.ca,mnode01.cavenet.ca,mnode02.cavenet.ca,mnode03.cavenet.ca
 #- hosts: nodes
   become: yes
 
@@ -31,7 +31,6 @@
     yum:
       name: '*'
       state: latest
-    register: os_patch
 
   - name: Add extra packages
     yum:
@@ -113,14 +112,12 @@
 
   - name: Reboot Server
     shell: shutdown -r +1
-    when: os_patch.changed
 
   - name: Hold for Reboot
     wait_for_connection:
       timeout: 900
       delay: 120
       sleep: 5
-    when: os_patch.changed
 
   - debug: 
       msg: "back after Reboot."
