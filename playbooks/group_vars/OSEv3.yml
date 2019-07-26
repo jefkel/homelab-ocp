@@ -12,7 +12,7 @@ openshift_rolling_restart_mode: system
 os_firewall_use_firewalld: true
 
 # Test this from Steven!
-openshift_master_identity_providers: [{"name": "github", "challenge": false, "login": true, "mappingMethod": "claim", "provider": {"apiVersion": "v1", "clientID": "0594c88fa08e19e661f9", "clientSecret": "456761429ddcb8980176ecddf616443f4100393a", "kind": "GitHubIdentityProvider", "organizations": ["cavenet"]}}]
+#openshift_master_identity_providers: [{"name": "github", "challenge": false, "login": true, "mappingMethod": "claim", "provider": {"apiVersion": "v1", "clientID": "0594c88fa08e19e661f9", "clientSecret": "456761429ddcb8980176ecddf616443f4100393a", "kind": "GitHubIdentityProvider", "organizations": ["cavenet"]}}]
 
 openshift_docker_options: "--log-driver json-file --log-opt max-size=1M --log-opt max-file=3"
 openshift_check_min_host_memory_gb: 1.5

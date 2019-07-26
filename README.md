@@ -16,6 +16,7 @@ Specs:
 Split DNS (internal as well as external DNS)
 Static Leases for hosts via existing DHCP service
 check on DHCP DNS host (had issue with pointing to external DNS which messes up internal network DNS)
+check external access to API allowed in firewall (or re-configure inventory for internal only)
 
 Each VM built with Minimal CentOS image
  - root and user (admin) accounts provisioned during install
