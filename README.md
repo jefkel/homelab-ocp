@@ -29,6 +29,9 @@ Run homelab/playbooks/deployOS.yml playbook to do initial server setup and other
 eg: (to bypass sudo and key issues until after node prep)
 ansible-playbook playbooks/deployOS.yml -K -k
 
+Generate users.htpasswd file for basic auth installation:
+htpasswd -c playbooks/files/users.htpasswd ${USERNAME} -b ${PASSWD}
+
 
 ### OpenShift Deployment
 

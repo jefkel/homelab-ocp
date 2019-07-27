@@ -4,6 +4,10 @@
 #ansible_become: true
 
 openshift_deployment_type: origin
+#openshift_pkg_version: "-3.11.59"
+#openshift_image_tag: "v3.11.59"
+#openshift_version: "3.11.59"
+
 openshift_master_default_subdomain: app.cavenet.ca
 # used to ensure external DNS doesn't override internal name
 MasterPublicURL: https://mm01.cavenet.ca:8443
@@ -11,8 +15,34 @@ MasterPublicURL: https://mm01.cavenet.ca:8443
 openshift_rolling_restart_mode: system
 os_firewall_use_firewalld: true
 
-# Test this from Steven!
+# For basic auth (since can't seem to get steven's github challenge working on install)
+# htpasswd auth
+openshift_master_identity_providers:
+  - name: 'htpasswd_auth'
+    login: 'true'
+    challenge: 'true'
+    kind: 'HTPasswdPasswordIdentityProvider'
+
+openshift_master_htpasswd_file: '/home/jkelly/homelab-ocp/playbooks/files/users.htpasswd'
+
+# From Steven - sanity check fails - last read 'kind'.
 #openshift_master_identity_providers: [{"name": "github", "challenge": false, "login": true, "mappingMethod": "claim", "provider": {"apiVersion": "v1", "clientID": "0594c88fa08e19e661f9", "clientSecret": "456761429ddcb8980176ecddf616443f4100393a", "kind": "GitHubIdentityProvider", "organizations": ["cavenet"]}}]
+## Jeffs attempt to clean up the providers list
+#openshift_master_identity_providers:
+#  - name: "github"
+#    challenge: false
+#    login: true
+#    mappingMethod: "claim"
+#    provider:
+#      apiVersion: "v1"
+#      clientID: "{{ vault_idp_client_id }}"
+#      clientSecret: "{{ vault_idp_client_secret }}"
+#      kind: "GitHubIdentityProvider"
+#      organizations:
+#      - cavenet
+
+# Network Setup (ala pathfinder)
+os_sdn_network_plugin_name: "redhat/openshift-ovs-multitenant"
 
 openshift_docker_options: "--log-driver json-file --log-opt max-size=1M --log-opt max-file=3"
 openshift_check_min_host_memory_gb: 1.5
@@ -24,6 +54,10 @@ openshift_check_min_host_disk_gb: 15
 #openshift_persistentlocalstorage_enabled: False
 openshift_persistentlocalstorage_enabled: True
 
-# Override image as per https://github.com/openshift/openshift-ansible/issues/9960
-#ansible_service_broker_image: "docker.io/ansibleplaybookbundle/origin-ansible-service-broker:ansible-service-broker-1.2.17-1"
+# Add whitelist (override no whitelist) for local registry.
 ansible_service_broker_local_registry_whitelist: ['.*-apb$']
+ansible_service_broker_local_registry_namespaces: ['openshift']
+
+# Authentication credentials for registry.redhat.io
+#oreg_auth_user: "{{ vault_oreg_auth_user }}"
+#oreg_auth_password: "{{ vault_oreg_auth_password }}" 
